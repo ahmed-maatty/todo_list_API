@@ -2,18 +2,37 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from "@nestjs/mongoose";
 import { TasksModule } from './tasks/tasks.module';
+import { JwtModule } from '@nestjs/jwt';
+
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    MongooseModule.forRoot("mongodb://127.0.0.1:27017/TodoList"),
+    MongooseModule.forRootAsync({
+      inject: [ConfigService],
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        uri: config.get<string>('DB_URL')
+      })
+    }),
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        global: true,
+        secret: config.get<string>("JWT_SECRET_KEY"),
+        signOptions: {
+          expiresIn: config.get<string>("JWT_EXPIRE_IN")
+        }
+      })
+    }),
     AuthModule,
     TasksModule
-    ],
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+
+export class AppModule { }
