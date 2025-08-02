@@ -13,7 +13,7 @@ export class AuthController {
   }
 
   @Post('login')
-  async login( @Body() userData : loginDto) {
+  async login(@Body() userData: loginDto) {
     return await this.AuthService.loginLogic(userData);;
   }
 }

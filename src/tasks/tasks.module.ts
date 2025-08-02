@@ -4,11 +4,13 @@ import { TasksService } from './tasks.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Task, taskSchema } from './schema/tasks.schema';
 import { VerifytokenMiddleware } from 'src/middlewares/verifytoken.middleware';
+import { User, UserSchema } from 'src/auth/schema/user.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: Task.name, schema: taskSchema }
+      { name: Task.name, schema: taskSchema },
+      { name: User.name, schema: UserSchema }
     ])
   ],
   controllers: [TasksController],
