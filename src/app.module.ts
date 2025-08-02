@@ -12,13 +12,14 @@ import { JwtModule } from '@nestjs/jwt';
   imports: [
     ConfigModule.forRoot(),
     MongooseModule.forRootAsync({
-      inject: [ConfigService],
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         uri: config.get<string>('DB_URL')
       })
     }),
     JwtModule.registerAsync({
+      imports:[ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         global: true,

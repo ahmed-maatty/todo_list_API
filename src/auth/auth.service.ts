@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { loginDto, registerDto } from './dtos/auth.dtos';
 import { InvalidEmailOrPassException } from './exceptions/exception';
 import * as bcrypt from "bcrypt";
+import * as jwt from "jsonwebtoken";
 
 @Injectable()
 export class AuthService {
@@ -46,6 +47,8 @@ export class AuthService {
       throw new InvalidEmailOrPassException;
     }
 
-    return { message: `Welcome Back ${user.fullName}`}
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY!, { expiresIn: "1d" });
+
+    return { message: `Welcome Back ${user.fullName}`, token }
   }
 }
