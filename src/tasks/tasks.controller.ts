@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Req } from '@nestjs/common';
 import { TasksService } from './tasks.service';
-import { tasksDTOS } from './dtos/tasks.dtos';
+import { taskEditsDTOS, tasksDTOS } from './dtos/tasks.dtos';
 import { Request } from 'express';
 
 
@@ -24,12 +24,14 @@ export class TasksController {
   }
 
   @Put(":id")
-  async editTask() {
-
+  async editTask(@Body() editsInfo: taskEditsDTOS, @Param("id") id: string , @Req() req : Request) {
+    const userId = (req as Request & { user: { id: string } }).user.id;
+    return await this.taskServices.editTaskLogic(id, editsInfo , userId);
   }
 
-  @Delete("id")
-  async deleteTask() {
-
+  @Delete(":id")
+  async deleteTask(@Param("id") id : string , @Req() req : Request) {
+    const userId = (req as Request & {user : {id :string}}).user.id
+    return await this.taskServices.deleteTask(id , userId)
   }
 }

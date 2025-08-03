@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Task } from './schema/tasks.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { tasksDTOS } from './dtos/tasks.dtos';
+import { taskEditsDTOS, tasksDTOS } from './dtos/tasks.dtos';
 import { User } from 'src/auth/schema/user.schema';
 
 @Injectable()
@@ -30,5 +30,47 @@ export class TasksService {
     });
     await this.userModel.findByIdAndUpdate(userId, { $push: { tasks: task.id } })
     return task
+  }
+
+  async editTaskLogic(taskId: string, editsInfo: taskEditsDTOS, userId: string) {
+    const { title, description, time } = editsInfo;
+    const user = await this.userModel.findById(userId);
+    const isTaskExist = user?.tasks.some((task) => task.toString() === taskId.toString());
+    if (!isTaskExist) {
+      return {
+        message: "Task Not Found.",
+        status: 404
+      }
+    }
+    const updates: Record<string, any> = {};
+    if (title) updates.title = title;
+    if (description) updates.description = description;
+    if (time) updates.time = time;
+    const modifiedTask = await this.taskModel.findByIdAndUpdate(taskId, { $set: updates }, { new: true, runValidators: true });
+    return modifiedTask;
+  }
+
+  async deleteTask(taskId: string, userId: string) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      return {
+        message: "User Not Found, Please Login",
+        status: 401
+      }
+    }
+    const taskIndex = user?.tasks.findIndex(task => task.toString() === taskId.toString());
+    if (taskIndex === -1) {
+      return {
+        message: "Task Not Found",
+        status: 404
+      }
+    }
+    user?.tasks.splice(taskIndex, 1);
+    await user?.save();
+    await this.taskModel.findByIdAndDelete(taskId);
+    return {
+      message: "Task Deleted Successfully."
+    }
+
   }
 }
